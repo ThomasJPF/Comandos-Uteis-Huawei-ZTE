@@ -67,7 +67,7 @@ Guia prático de comandos essenciais para troubleshooting em equipamentos OLT ZT
 | ---------------------------------------- | ------------------------------------------- | ------------------------------- |
 | `interface gpon_olt-[SLOT]/[PON]`        | Acessar uma interface PON para configuração | `interface gpon_olt-1/5/2`      |
 | `interface gpon_onu-[SLOT]/[PON]:[ID]`   | Acessar configuração de uma ONU específica  | `interface gpon_onu-1/5/2:10`   |
-| `interface vport-[SLOT]/[PON].[ID]:1`    | Acessar a virtual port de uma ONU           | `interface vport-1/5/2.10:1`    |
+| `interface vport-[SLOT]/[PON].[ID]:1`    | Acessar a virtual port de uma ONU           | `interface vport-2/5/2.10:1`    |
 | `interface smartgroup[ID]`               | Acessar interface de uplink (porta física)  | `interface smartgroup1`         |
 | `pon-onu-mng gpon_onu-[SLOT]/[PON]:[ID]` | Acessar gerenciamento avançado da ONU       | `pon-onu-mng gpon_onu-1/5/2:10` |
 
