@@ -430,5 +430,6 @@ Este é um campo **incrível**, cheio de desafios e aprendizados diários. No co
 
 **Última atualização:** Novembro de 2025  
 **Versão:** 1.0  
+**Autor:** ThomasJPF  
 **Público-alvo:** Analistas NOC Iniciantes a Intermediários
 

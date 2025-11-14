@@ -1390,6 +1390,7 @@ Parabéns! Você agora tem uma base sólida para trabalhar com switches Datacom.
 
 **Versão:** 1.0  
 **Data:** Novembro 2025  
+**Autor:** ThomasJPF  
 **Público-Alvo:** Analistas NOC Iniciantes  
 **Dificuldade:** Básico a Intermediário  
 **Equipamentos:** Datacom DmSwitch series (DM2500, DM3500, DM4100, etc)

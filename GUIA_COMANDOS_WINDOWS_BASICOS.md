@@ -1520,6 +1520,7 @@ Parabéns por chegar até aqui! Agora você tem uma base sólida de comandos Win
 
 **Versão:** 1.0  
 **Data:** Novembro 2025  
+**Autor:** ThomasJPF  
 **Público-Alvo:** Analistas NOC Iniciantes  
 **Dificuldade:** Básico
 

@@ -1258,6 +1258,7 @@ Parabéns por chegar até aqui! Você agora tem uma base sólida para trabalhar 
 
 **Versão:** 1.0  
 **Data:** Novembro 2025  
+**Autor:** ThomasJPF  
 **Público-Alvo:** Analistas NOC Iniciantes  
 **Dificuldade:** Básico a Intermediário  
 **Equipamentos:** ZTE C300, ZTE C320

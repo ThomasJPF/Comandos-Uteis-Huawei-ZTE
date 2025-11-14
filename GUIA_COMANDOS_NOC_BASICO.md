@@ -608,4 +608,5 @@ Se após usar os comandos básicos não resolver:
 
 **Versão:** 1.0  
 **Data:** Outubro 2025  
+**Autor:** ThomasJPF  
 **Revisão:** Analista NOC + Documentação Técnica
