@@ -224,6 +224,29 @@ interface gpon_olt-1/5/2
 
 ---
 
+#### Comando: `write`
+
+**O que faz?**
+**Salva** todas as configurações em execução na memória permanente da OLT. Sem este comando, as alterações são perdidas se a OLT reiniciar.
+
+**Quando usar?**
+Após QUALQUER alteração de configuração que você deseja manter permanentemente.
+
+**Sintaxe:**
+```bash
+write
+```
+
+**Exemplo:**
+```bash
+ZXAN#write
+.[OK].
+```
+
+> **⚠️ MUITO IMPORTANTE:** Se você fez uma configuração e NÃO executou `write`, ao reiniciar a OLT a alteração será perdida! Sempre salve após configurar.
+
+---
+
 ### 📌 2. Localizando ONUs
 
 #### Comando: `show gpon onu by sn [SERIAL]`
@@ -473,6 +496,50 @@ gpon-onu_1/5/2:10   -21.25
 
 ---
 
+#### Comando: `show pon power olt-rx gpon_olt-[SLOT]/[PON]`
+
+**O que faz?**
+Mostra a **potência de sinal RX recebida pela OLT** de cada ONU conectada a uma PON. Diferente do `onu-rx` (que mostra o sinal na ONU), este mostra o sinal que **chega na OLT**.
+
+**Para que serve?**
+- Verificar a qualidade do sinal que cada ONU envia para a OLT
+- Complementar a análise do `onu-rx` com a visão do lado da OLT
+- Identificar ONUs com transmissão fraca
+
+**Sintaxe:**
+```bash
+show pon power olt-rx gpon_olt-[SLOT]/[CARD]/[PON]
+```
+
+**Exemplo:**
+```bash
+show pon power olt-rx gpon_olt-1/1/1
+```
+
+**O que você vai ver:**
+```
+Onu                    Rx power
+------------------------------------
+gpon_onu-1/2/1:1       -21.337(dbm)
+gpon_onu-1/2/1:3       -18.827(dbm)
+gpon_onu-1/2/1:4       -17.478(dbm)
+gpon_onu-1/2/1:5       -19.927(dbm)
+gpon_onu-1/2/1:7       -18.055(dbm)
+gpon_onu-1/2/1:8       -18.167(dbm)
+```
+
+**Interpretando:**
+
+| OLT RX (dBm) | Qualidade | O que significa? |
+|---------------|-----------|------------------|
+| **-8 a -25 dBm** | ✅ Bom | Sinal que a OLT recebe está adequado |
+| **-25 a -28 dBm** | ⚠️ Limiar | ONU pode estar com problema de fibra |
+| **< -28 dBm** | ❌ Crítico | Problema sério na fibra ou ONU |
+
+> **💡 Dica:** Compare o `olt-rx` com o `onu-rx` para ter uma visão completa do link óptico. Se o `olt-rx` está ruim mas o `onu-rx` está bom, o problema pode estar no TX da ONU.
+
+---
+
 #### Comando: `show pon power attenuation gpon-onu_[SLOT]/[PON]:[ID]`
 
 **O que faz?**
@@ -546,6 +613,46 @@ Description: PON Bairro Centro
 | **2 a 5 dBm** | ✅ Normal |
 | **< 2 dBm** | ❌ Sinal baixo - problema no SFP/módulo óptico |
 | **> 5 dBm** | ⚠️ Sinal muito forte (raro) |
+
+---
+
+#### Comando: `show gpon onu distance gpon_onu-[SLOT]/[PON]:[ID]`
+
+**O que faz?**
+Mostra a **distância física** (em metros) entre a OLT e uma ONU específica.
+
+**Para que serve?**
+- Saber a distância aproximada entre OLT e ONU
+- Auxiliar no diagnóstico de atenuação (distâncias maiores = mais perda de sinal)
+- Validar se a ONU está dentro do alcance esperado
+
+**Sintaxe:**
+```bash
+show gpon onu distance gpon_onu-[SLOT]/[CARD]/[PON]:[ID]
+```
+
+**Exemplo:**
+```bash
+show gpon onu distance gpon_onu-1/1/1:1
+```
+
+**O que você vai ver:**
+```
+Eqd (bit)    Distance(m)
+.......................................
+265496       1163
+```
+
+**Interpretando:**
+
+| Distância | Observação |
+|-----------|------------|
+| **0-5 km** | ✅ Normal para redes urbanas |
+| **5-10 km** | ⚠️ Monitorar atenuação |
+| **10-20 km** | ⚠️ Limite do GPON, sinal pode estar fraco |
+| **> 20 km** | ❌ Fora do alcance padrão GPON |
+
+> **💡 Dica:** Use este comando junto com `show pon power attenuation` para correlacionar distância com perda de sinal. Distâncias maiores naturalmente têm mais atenuação.
 
 ---
 
@@ -688,6 +795,80 @@ System Uptime: 150 days, 12 hours, 30 minutes
 
 ---
 
+#### Comando: `show software`
+
+**O que faz?**
+Mostra informações detalhadas do software da OLT, incluindo versão, data de compilação, arquivo de imagem do sistema e **uptime** (tempo que a OLT está ligada sem reiniciar).
+
+**Para que serve?**
+- Verificar a versão exata do software rodando na OLT
+- Ver o **uptime** (há quanto tempo a OLT está ligada)
+- Conferir o arquivo de imagem carregado e seu tamanho
+- Validar se uma atualização foi aplicada corretamente
+
+**Sintaxe:**
+```bash
+show software
+```
+
+**Exemplo de saída:**
+```
+UZZY-PYM-ERD-COB(config)#show software 
+ZXA10 C610
+ZTE ZXA10 Software, Version: V1.2.2, Release software
+Copyright (c) 2021 by ZTE Corporation
+Built on 2021/07/28 19:48:25
+System image file is <sysdisk0: verset/ZXA10C610V1.2.2B6.set>, file size is 431,812,846 Bytes
+System image is loaded from local
+System uptime is 529 day(s), 19 hour(s), 2 minute(s)
+
+[GMPA, shelf 1, slot 1]:
+  Active Packages on Node MPU-1/1/0:
+    Base-1.2.2:
+      Package: Base
+      Version: V1.2.2
+```
+
+**Interpretando:**
+
+| Campo | O que significa? | Exemplo |
+|-------|------------------|---------|
+| **Version** | Versão do software | V1.2.2 |
+| **Built on** | Data da compilação do software | 2021/07/28 |
+| **System image file** | Arquivo de imagem carregado | ZXA10C610V1.2.2B6.set |
+| **System uptime** | Tempo que a OLT está ligada | 529 dias, 19 horas, 2 minutos |
+| **Active Packages** | Pacotes ativos na placa de controle | Base V1.2.2 |
+
+> **💡 Dica:** Este comando é muito útil para verificar se a OLT foi reiniciada recentemente (uptime baixo) ou para confirmar que uma atualização de software foi aplicada com sucesso.
+
+---
+
+#### Comando: `show install` / `show install active` / `show patch effective`
+
+**O que faz?**
+Mostra informações sobre pacotes instalados, pacotes ativos e patches aplicados na OLT.
+
+**Para que serve?**
+- Verificar quais pacotes de software estão instalados
+- Confirmar se um patch/atualização foi ativado corretamente
+- Listar patches efetivos no sistema
+
+**Sintaxe:**
+```bash
+# Ver todos os pacotes instalados
+show install
+
+# Ver apenas os pacotes ativos
+show install active
+
+# Ver patches efetivos
+show patch effective
+```
+
+> **💡 Dica:** Após uma atualização de software ou ativação de patch, use estes comandos para confirmar que tudo foi aplicado corretamente.
+
+---
+
 #### Comando: `show card`
 
 **O que faz?**
@@ -731,6 +912,112 @@ show temperature
 
 ---
 
+#### Comando: `who`
+
+**O que faz?**
+Mostra **todos os usuários** conectados na OLT naquele momento, com informações de sessão.
+
+**Para que serve?**
+- Ver quem está logado na OLT
+- Identificar sessões ativas (console, SSH, telnet)
+- Verificar há quanto tempo um usuário está inativo (idle)
+
+**Sintaxe:**
+```bash
+who
+```
+
+**O que você vai ver:**
+```
+Line      User   Host(s)  Idle      Login            Location
+0 con 0          idle     00:09:31  2022-03-24 22:54:12
+* 66 vty 0  zte  idle     00:00:00  2022-03-24 22:47:18  192.168.182.10
+```
+
+**Interpretando:**
+
+| Campo | O que significa? |
+|-------|------------------|
+| **Line** | Tipo de conexão (`con` = console, `vty` = SSH/Telnet) |
+| **User** | Nome do usuário logado |
+| **Idle** | Tempo sem atividade |
+| **Login** | Data e hora do login |
+| **Location** | IP de origem da conexão |
+| **\*** | Indica a SUA sessão (quem executou o comando) |
+
+---
+
+#### Comando: `show tcp brief`
+
+**O que faz?**
+Mostra as **conexões TCP ativas** na OLT, incluindo IP e porta de origem dos usuários conectados.
+
+**Para que serve?**
+- Ver IP e porta de origem de conexões SSH/Telnet
+- Identificar conexões estabelecidas (ESTAB)
+- Obter o **TCB Index** para desconectar um usuário, se necessário
+
+**Sintaxe:**
+```bash
+show tcp brief
+```
+
+**O que você vai ver:**
+```
+TCB Index  Local Address         Foreign Address         State
+5127       136.1.1.100:22        192.168.182.10:3727     ESTAB
+5124       172.17.16.0:20003     172.17.16.1:646         ESTAB
+```
+
+**Interpretando:**
+
+| Campo | O que significa? |
+|-------|------------------|
+| **TCB Index** | Identificador da conexão (usado para desconectar) |
+| **Local Address** | IP:Porta da OLT |
+| **Foreign Address** | IP:Porta do usuário remoto |
+| **State: ESTAB** | Conexão estabelecida |
+
+> **💡 Dica:** Para desconectar um usuário pelo TCB Index: `clear tcp tcb [INDEX]` (exemplo: `clear tcp tcb 5127`). Use com cautela!
+
+---
+
+#### Comando: `reload slot [SHELF] [SLOT] force`
+
+**O que faz?**
+Reinicia um **card (placa)** específico da OLT. Útil para corrigir falhas ou limpar alarmes.
+
+**Para que serve?**
+- Reiniciar uma placa que apresentou falha
+- Limpar alarmes de "estado anormal do card"
+- Recuperar uma placa travada
+
+**Sintaxe:**
+```bash
+reload slot [SHELF] [SLOT] force
+```
+
+**Exemplo:**
+```bash
+ZXAN#reload slot 1 1 force
+The slot is in LCC, proceed with reloading the slot? [yes/no]:y
+%Info 40409: Reload slot successfully.
+```
+
+> **⚠️ CUIDADO:** Este comando reinicia a placa e pode desconectar ONUs conectadas a ela temporariamente! Use apenas com autorização.
+
+**Swap entre Control Cards (OLTs com placa redundante):**
+```bash
+# Troca a operação entre placas de controle (INSERVICE ↔ STANDBY)
+ZXAN#reload slot 1 5 grace
+Proceed with reloading the slot of master SC? [yes/no]:yes
+%Info 40807: Reload MSC slot is running.
+```
+
+> **💡 Nota:** O swap não impacta o encaminhamento de pacotes nem desconecta PPPoE. Serviços SSH/Telnet/SNMP ficam indisponíveis por até 10 segundos.
+
+---
+
 #### Comando: `show running-config`
 
 **O que faz?**
@@ -755,6 +1042,399 @@ show running-config | include vlan
 # Ver configuração de uma interface específica
 show running-config interface gpon_olt-1/5/2
 ```
+
+---
+
+### 📌 6. Informações Remotas da ONU (OMCI)
+
+A OLT utiliza o protocolo **OMCI** (ONU Management and Control Interface) para gerenciar e consultar informações das ONUs remotamente. Estes comandos permitem obter dados detalhados de uma ONU sem precisar acessá-la diretamente.
+
+#### Comando: `show remote-unit information gpon_olt_[SLOT]/[PON] [ID]`
+
+**O que faz?**
+Mostra informações de **modelo, versão de software e firmware** da ONU consultando via OMCI.
+
+**Para que serve?**
+- Ver a versão de software/firmware da ONU
+- Verificar se uma atualização de firmware foi aplicada
+- Identificar o modelo exato da ONU
+
+**Sintaxe:**
+```bash
+show remote-unit information gpon_olt_[SLOT]/[CARD]/[PON] [ID]
+```
+
+**Exemplo:**
+```bash
+show remote-unit information gpon_olt_1/1/1 1
+```
+
+**O que você vai ver:**
+```
+Gpon_onu-1/1/1: 1
+CpeVendorName  : ZTEG
+CpeType        : F601V6.0
+Region 1
+  Vertag     : V6.0.1T6
+  Commited   : No
+  Activated  : No
+  Valid       : Yes
+Region 2
+  Vertag     : V6.0.1P1T6
+  Commited   : Yes
+  Activated  : Yes
+  Valid       : Yes
+```
+
+---
+
+#### Comando: `show gpon remote-onu capability gpon_onu-[SLOT]/[PON]:[ID]`
+
+**O que faz?**
+Mostra as **capacidades** de uma ONU: quantidade de T-CONTs, GEM Ports, portas Ethernet, WiFi, POTS, etc.
+
+**Para que serve?**
+- Descobrir quantas portas Ethernet, WiFi e POTS a ONU possui
+- Verificar a capacidade máxima de T-CONTs e GEM Ports
+- Identificar o tipo de ONU (SFU, HGU, etc.)
+- Necessário para cadastrar um novo ONU-TYPE quando não há datasheet
+
+**Sintaxe:**
+```bash
+show gpon remote-onu capability gpon_onu-[SLOT]/[CARD]/[PON]:[ID]
+```
+
+**Exemplo:**
+```bash
+show gpon remote-onu capability gpon_onu-1/1/1:1
+```
+
+**O que você vai ver:**
+```
+TCONT number: 8
+GEMPort number: 256
+Total priority queue number: 104
+Total UNI number: 14
+Ethernet UNI number: 4 (GE:4 FE:0)
+POTS UNI number: 1
+WiFi UNI number: 8
+IP host number: 10
+ONU type: SFU
+```
+
+---
+
+#### Comando: `show gpon remote-onu equip gpon_onu-[SLOT]/[PON]:[ID]`
+
+**O que faz?**
+Mostra informações de **equipamento** da ONU: Vendor ID, versão, serial, modelo, status operacional.
+
+**Para que serve?**
+- Confirmar o Vendor ID e modelo da ONU
+- Ver o EquipID (modelo exato)
+- Verificar status administrativo e operacional
+- Obter informações para criação de ONU-TYPE
+
+**Sintaxe:**
+```bash
+show gpon remote-onu equip gpon_onu-[SLOT]/[CARD]/[PON]:[ID]
+```
+
+**Exemplo:**
+```bash
+show gpon remote-onu equip gpon_onu-1/1/1:1
+```
+
+**O que você vai ver:**
+```
+Vendor ID: ZTEG
+Version: V1.1.01
+SN: ZTEGc4b4700d
+Admin status: unlock
+Battery backup: false
+OperState: enable
+EquipID: F670LV1.1.01
+Model: F670LV1.1.01
+```
+
+---
+
+#### Comando: `show gpon remote-onu wan-ip gpon_onu-[SLOT]/[PON]:[ID]`
+
+**O que faz?**
+Mostra a configuração e status da **interface WAN** da ONU (PPPoE, DHCP ou estático).
+
+**Para que serve?**
+- Verificar se a conexão PPPoE/DHCP da ONU está **connected** (conectada)
+- Ver o IP atual obtido pela ONU
+- Diagnosticar problemas de autenticação PPPoE
+- Ver gateway, DNS e VLAN configurados
+
+**Sintaxe:**
+```bash
+show gpon remote-onu wan-ip gpon_onu-[SLOT]/[CARD]/[PON]:[ID]
+```
+
+**Exemplo:**
+```bash
+show gpon remote-onu wan-ip gpon_onu-1/1/1:1
+```
+
+**O que você vai ver (PPPoE):**
+```
+WAN id: 1
+Mode: PPPoE
+Authentication: auto
+User name: ppp1
+Password: 1234
+Status: connected
+VLAN tag mode: tag
+CVLAN: 10
+Current IP: 192.168.11.79
+Current mask: 255.255.255.255
+Current gateway: 192.168.11.1
+Current primary DNS: 8.8.8.8
+MAC address: BEBA.CAFE.C0CA
+```
+
+**Exemplo saída DHCP:**
+```
+WAN id: 1
+Mode: DHCP
+Status: connected
+CVLAN: 20
+Current IP: 192.168.32.253
+Current mask: 255.255.255.0
+Current gateway: 192.168.32.1
+```
+
+| Campo | O que significa? |
+|-------|------------------|
+| **Mode** | Tipo de conexão (PPPoE, DHCP, Static) |
+| **Status: connected** | ✅ Conexão ativa |
+| **Status: disconnected** | ❌ Sem conexão |
+| **Current IP** | IP atual da ONU |
+| **CVLAN** | VLAN do serviço |
+
+---
+
+#### Comando: `show gpon remote-onu interface eth gpon_onu-[SLOT]/[PON]:[ID]`
+
+**O que faz?**
+Mostra o **status da interface Ethernet** da ONU (velocidade, status operacional, etc.).
+
+**Para que serve?**
+- Verificar se a porta Ethernet da ONU está ativa
+- Ver a velocidade negociada (100M, 1G)
+- Diagnosticar problemas de conectividade na porta LAN
+
+**Sintaxe:**
+```bash
+show gpon remote-onu interface eth gpon_onu-[SLOT]/[CARD]/[PON]:[ID]
+```
+
+**Exemplo:**
+```bash
+show gpon remote-onu interface eth gpon_onu-1/2/1:2
+```
+
+**O que você vai ver:**
+```
+Interface       : eth_0/1
+Speed status    : full-100
+Operate status  : enable
+Admin status    : unlock
+Speed config    : auto
+Ethernet loop   : disable
+Max frame       : 1632B
+PPPoE filter    : disable
+```
+
+| Speed status | O que significa? |
+|-------------|------------------|
+| **full-100** | Negociou 100 Mbps full-duplex |
+| **full-1000** | Negociou 1 Gbps full-duplex |
+| **half-100** | Negociou 100 Mbps half-duplex (⚠️ problema de cabo/equipamento) |
+
+---
+
+#### Comando: `show gpon remote-onu mac gpon_onu-[SLOT]/[PON]:[ID] ethuni eth_0/1`
+
+**O que faz?**
+Mostra os **endereços MAC** aprendidos na porta Ethernet da ONU.
+
+**Para que serve?**
+- Verificar se há algum equipamento conectado na porta da ONU
+- Identificar o MAC do roteador/computador do cliente
+- Diagnosticar se há tráfego passando pela ONU
+
+**Sintaxe:**
+```bash
+show gpon remote-onu mac gpon_onu-[SLOT]/[CARD]/[PON]:[ID] ethuni eth_0/[PORTA]
+```
+
+**Exemplo:**
+```bash
+show gpon remote-onu mac gpon_onu-1/2/1:2 ethuni eth_0/1
+```
+
+**O que você vai ver:**
+```
+Total mac address of eth_0/1: 1
+Mac address       Vlan/Age  Type     Action
+-------------------------------------------------------
+641C.67A7.1BB9    0         dynamic  forward
+```
+
+✅ **Há MAC** = Equipamento conectado e funcionando  
+❌ **Sem MAC** = Nada conectado na porta ou cabo com problema
+
+---
+
+### 📌 7. Profiles e QoS
+
+#### Comando: `show gpon profile tcont`
+
+**O que faz?**
+Lista **todos os profiles de T-CONT** (controle de banda no upstream) configurados na OLT.
+
+**Para que serve?**
+- Ver quais perfis de upload existem
+- Verificar a velocidade configurada (fixed, assured, maximum)
+- Identificar qual profile usar ao provisionar uma ONU
+
+**Sintaxe:**
+```bash
+show gpon profile tcont
+```
+
+**O que você vai ver:**
+```
+Name :UP-200MBPS
+  Type  FBW(kbps)  ABW(kbps)  MBW(kbps)
+  5     3500       3500       200000
+
+Name :UP-150MBPS
+  Type  FBW(kbps)  ABW(kbps)  MBW(kbps)
+  4     0          0          150000
+
+Name :UP-100MBPS
+  Type  FBW(kbps)  ABW(kbps)  MBW(kbps)
+  3     0          7000       100000
+
+Name :UP-50MBPS
+  Type  FBW(kbps)  ABW(kbps)  MBW(kbps)
+  2     0          50000      0
+```
+
+**Entendendo os Tipos de T-CONT:**
+
+| Tipo | Nome | Descrição |
+|------|------|-----------|
+| **Type 1** | Fixed Bandwidth | Banda fixa. Para serviços sensíveis a atraso (VoIP) |
+| **Type 2** | Assured Bandwidth | Banda garantida. Para serviços como VoD |
+| **Type 3** | Non-Assured | Banda mínima garantida + compartilha excesso |
+| **Type 4** | Best Effort | Apenas banda máxima, sem garantia. Para navegação web |
+| **Type 5** | Maximum (Misto) | Combina fixo + garantido + máximo. Mais usado para internet |
+
+**Legenda:**
+
+| Coluna | O que significa? |
+|--------|------------------|
+| **FBW** | Fixed Bandwidth - Banda fixa (kbps) |
+| **ABW** | Assured Bandwidth - Banda garantida (kbps) |
+| **MBW** | Maximum Bandwidth - Banda máxima (kbps) |
+
+---
+
+#### Comando: `show gpon onu profile vlan`
+
+**O que faz?**
+Lista **todos os profiles de VLAN** de ONU configurados na OLT.
+
+**Para que serve?**
+- Ver quais perfis de VLAN estão disponíveis para provisionamento
+- Verificar a tag mode e VLAN ID de cada perfil
+- Necessário para configurações de ONU modo Router (PPPoE/DHCP)
+
+**Sintaxe:**
+```bash
+show gpon onu profile vlan
+```
+
+**O que você vai ver:**
+```
+Profile name: 10
+  Tag mode: tag
+  CVLAN: 10
+  CVLAN priority: 0
+
+Profile name: 20
+  Tag mode: tag
+  CVLAN: 20
+  CVLAN priority: 0
+```
+
+---
+
+#### Comando: `show qos traffic-profile name [NOME]`
+
+**O que faz?**
+Mostra os detalhes de um **profile de tráfego** (controle de banda no downstream).
+
+**Para que serve?**
+- Verificar a configuração de banda de download de um perfil
+- Ver os valores de CIR (banda comprometida) e PIR (banda de pico)
+- Diagnosticar se o controle de banda está correto
+
+**Sintaxe:**
+```bash
+show qos traffic-profile name [NOME-DO-PROFILE]
+```
+
+**Exemplo:**
+```bash
+show qos traffic-profile name DOWN-100MBPS
+```
+
+**O que você vai ver:**
+```
+-----------------------------------------------------------------
+profile name                    : DOWN-100MBPS
+profile detail                  :
+-----------------------------------------------------------------
+basic traffic type              : ip
+committed information rate      : 100000 kbps
+committed burst size            : 2000 kbytes
+peak information rate           : 110000 kbps
+peak burst size                 : 2200 kbytes
+```
+
+| Campo | O que significa? |
+|-------|------------------|
+| **CIR (committed information rate)** | Banda garantida de download |
+| **CBS (committed burst size)** | Tamanho do burst permitido |
+| **PIR (peak information rate)** | Banda máxima de pico |
+| **PBS (peak burst size)** | Burst máximo de pico |
+
+---
+
+#### Comando: `show onu-type gpon`
+
+**O que faz?**
+Lista todos os **ONU-TYPEs** (modelos de ONU) cadastrados na OLT.
+
+**Para que serve?**
+- Verificar se o modelo de uma ONU já está cadastrado na OLT
+- Ver as interfaces e capacidades de cada ONU-TYPE
+- Necessário antes de provisionar para saber qual type usar
+
+**Sintaxe:**
+```bash
+show onu-type gpon
+```
+
+> **💡 Dica:** Se um modelo de ONU não estiver cadastrado, será necessário criar o ONU-TYPE antes de provisionar. Use os comandos `show gpon remote-onu capability` e `show gpon remote-onu equip` para obter os dados necessários.
 
 ---
 
@@ -1092,9 +1772,14 @@ Copie a estrutura e adapte apenas:
 | **ONU offline** | `show gpon onu state gpon-olt_X/Y/Z`<br>`show pon power onu-rx gpon_olt-X/Y/Z`<br>`show gpon onu detail-info gpon-onu_X/Y/Z:ID` | State: offline?<br>RX < -27 dBm?<br>Last cause: LOS? |
 | **ONU não autentica** | `show pon onu uncfg` | Aparece na lista? |
 | **VLAN não funciona** | `show vlan [VLAN]`<br>`show mac vlan [VLAN]` | VLAN existe?<br>Há MACs? |
-| **Sinal fraco** | `show pon power onu-rx gpon_olt-X/Y/Z`<br>`show pon power attenuation gpon-onu_X/Y/Z:ID` | RX < -27 dBm?<br>Attenuation > 28 dB? |
-| **Ver config geral** | `show running-config` | Toda configuração |
+| **Sinal fraco** | `show pon power onu-rx gpon_olt-X/Y/Z`<br>`show pon power olt-rx gpon_olt-X/Y/Z`<br>`show pon power attenuation gpon-onu_X/Y/Z:ID`<br>`show gpon onu distance gpon_onu-X/Y/Z:ID` | RX ONU < -27 dBm?<br>RX OLT < -28 dBm?<br>Attenuation > 28 dB?<br>Distância elevada? |
+| **Ver config geral** | `show running-config`<br>`show software` | Toda configuração<br>Versão e uptime |
 | **Health check PON** | `show interface gpon-olt_X/Y/Z`<br>`show gpon onu state gpon-olt_X/Y/Z` | TX OK?<br>Quantas ONUs online? |
+| **Info da ONU (OMCI)** | `show gpon remote-onu equip gpon_onu-X/Y/Z:ID`<br>`show gpon remote-onu wan-ip gpon_onu-X/Y/Z:ID`<br>`show gpon remote-onu interface eth gpon_onu-X/Y/Z:ID`<br>`show gpon remote-onu mac gpon_onu-X/Y/Z:ID ethuni eth_0/1` | Modelo/versão<br>WAN conectada?<br>Porta ETH ativa?<br>Há MACs? |
+| **Versão e patches** | `show software`<br>`show install active`<br>`show patch effective` | Versão OK?<br>Patch ativo?<br>Uptime? |
+| **Usuários logados** | `who`<br>`show tcp brief` | Quem está logado?<br>IP de origem? |
+| **Profiles configurados** | `show gpon profile tcont`<br>`show gpon onu profile vlan`<br>`show qos traffic-profile name [NOME]` | Profiles de upload<br>Profiles de VLAN<br>Profiles de download |
+| **Salvar configuração** | `write` | Configuração salva? |
 
 ---
 
@@ -1256,10 +1941,10 @@ Parabéns por chegar até aqui! Você agora tem uma base sólida para trabalhar 
 
 ---
 
-**Versão:** 1.0  
-**Data:** Novembro 2025  
+**Versão:** 1.1  
+**Data:** Fevereiro 2026  
 **Autor:** ThomasJPF  
 **Público-Alvo:** Analistas NOC Iniciantes  
 **Dificuldade:** Básico a Intermediário  
-**Equipamentos:** ZTE C300, ZTE C320
+**Equipamentos:** ZTE C300, ZTE C320, ZTE C600, ZTE C610, ZTE C620, ZTE C650 (Série Titan)
 
