@@ -1262,11 +1262,9 @@ show mac address-table
 ### 📚 Datacom
 
 1. **Portal de Suporte Datacom:**
-
    - https://www.datacom.com.br/suporte
 
 2. **Manuais DmSwitch:**
-
    - Documentação oficial dos switches
    - Comandos CLI completos
 
@@ -1388,8 +1386,8 @@ Parabéns! Você agora tem uma base sólida para trabalhar com switches Datacom.
 
 ---
 
-**Versão:** 1.0  
-**Data:** Novembro 2025  
+**Versão:** 1.1  
+**Data:** Novembro 2026
 **Autor:** ThomasJPF  
 **Público-Alvo:** Analistas NOC Iniciantes  
 **Dificuldade:** Básico a Intermediário  
